@@ -119,6 +119,30 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto center = sliderBounds.toFloat().getCentre();
     auto radius = sliderBounds.getWidth() * 0.5f;
 
+    //ParameterNames
+
+    auto numChoices = labels.size();
+    for (int i = 0; i < numChoices; ++i) {
+        auto pos = labels[i].pos;
+        jassert(0.f <= pos);
+        jassert(pos <= 1.f);
+
+        auto ang = 0; //change this
+
+        auto c = center.getPointOnCircumference(radius + getTextHeight() * 1.5f + 1, ang);
+
+        Rectangle<float> r;
+        auto str = labels[i].label;
+        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setCentre(c);
+        r.setY(r.getY() + getTextHeight());
+
+        g.setColour(Colours::white);
+        g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
+    }
+
+    //ParameterValues
+
     Path p;
 
     auto str = getDisplayString();
@@ -148,7 +172,7 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
     juce::Rectangle<int> r;
     r.setSize(size, size);
     r.setCentre(bounds.getCentreX(), bounds.getCentreY());
-    r.setY(2);
+    r.setY(8 + getTextHeight()); //height in pixels from top (slider/arc)
 
     return r;
 }
@@ -192,6 +216,11 @@ juce::String RotarySliderWithLabels::getDisplayString() const
     //return juce::String(getValue());
 }
 
+juce::String RotarySliderWithLabels::getParameterNameString() const
+{
+    return "TODO";
+}
+
 //==============================================================================
 MastersPluginVer2023AudioProcessorEditor::MastersPluginVer2023AudioProcessorEditor (MastersPluginVer2023AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
@@ -216,6 +245,15 @@ MastersPluginVer2023AudioProcessorEditor::MastersPluginVer2023AudioProcessorEdit
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+
+    macro1Slider.labels.add({ 0.f, "Macro 1" });
+    macro2Slider.labels.add({ 0.f, "Macro 2" });
+    macro3Slider.labels.add({ 0.f, "Macro 3" });
+    macro4Slider.labels.add({ 0.f, "Macro 4" });
+    macro5Slider.labels.add({ 0.f, "Macro 5" });
+    macro6Slider.labels.add({ 0.f, "Macro 6" });
+    macro7Slider.labels.add({ 0.f, "Macro 7" });
+    macro8Slider.labels.add({ 0.f, "Macro 8" });
 
     for (auto* comp : getComps()) {
         addAndMakeVisible(comp);
@@ -250,7 +288,9 @@ void MastersPluginVer2023AudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
 
     auto top4Area = bounds.removeFromTop(bounds.getHeight() * 0.5);
+    //auto topTitlesArea = top4Area.removeFromTop(top4Area.getHeight() * 0.15);
     auto bottom4Area = bounds;
+    //auto bottomTitlesArea = bottom4Area.removeFromTop(bottom4Area.getHeight() * 0.15);
 
     auto macro1Area = top4Area.removeFromLeft(top4Area.getWidth() * 0.25);
     auto macro2Area = top4Area.removeFromLeft(top4Area.getWidth() * 0.33);
