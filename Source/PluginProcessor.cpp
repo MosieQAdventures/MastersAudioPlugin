@@ -166,7 +166,8 @@ bool MastersPluginVer2023AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* MastersPluginVer2023AudioProcessor::createEditor()
 {
-    return new MastersPluginVer2023AudioProcessorEditor (*this);
+    //return new MastersPluginVer2023AudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -181,6 +182,67 @@ void MastersPluginVer2023AudioProcessor::setStateInformation (const void* data, 
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+//============= CUSTOM =========================================================
+
+juce::AudioProcessorValueTreeState::ParameterLayout MastersPluginVer2023AudioProcessor::createParameterLayout() {
+
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    float startRange = 0.f;
+    float endRange = 100.f;
+    float defaultValue = 0.f;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 1", 
+        "Macro 1", 
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 2",
+        "Macro 2",
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 3",
+        "Macro 3",
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 4",
+        "Macro 4",
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 5",
+        "Macro 5",
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 6",
+        "Macro 6",
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 7",
+        "Macro 7",
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Macro 8",
+        "Macro 8",
+        juce::NormalisableRange<float>(startRange, endRange, 1.f, 1.f),
+        defaultValue));
+
+    return layout;
 }
 
 //==============================================================================
