@@ -95,6 +95,18 @@ void MastersPluginVer2023AudioProcessor::prepareToPlay (double sampleRate, int s
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+
+    juce::dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = 1;
+    spec.sampleRate = sampleRate;
+
+    leftChain.prepare(spec);
+    rightChain.prepare(spec);
+
+    auto chainSettings = getChainSettings(apvts);
+
+    updateMacros(chainSettings);
 }
 
 void MastersPluginVer2023AudioProcessor::releaseResources()
@@ -144,18 +156,20 @@ void MastersPluginVer2023AudioProcessor::processBlock (juce::AudioBuffer<float>&
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    auto chainSettings = getChainSettings(apvts);
 
-        // ..do something to the data...
-    }
+    updateMacros(chainSettings);
+
+    juce::dsp::AudioBlock<float> block(buffer);
+
+    auto leftBlock = block.getSingleChannelBlock(0);
+    auto rightBlock = block.getSingleChannelBlock(1);
+
+    juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+    juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
+
+    leftChain.process(leftContext);
+    rightChain.process(rightContext);
 }
 
 //==============================================================================
@@ -166,8 +180,8 @@ bool MastersPluginVer2023AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* MastersPluginVer2023AudioProcessor::createEditor()
 {
-    //return new MastersPluginVer2023AudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new MastersPluginVer2023AudioProcessorEditor (*this);
+    //return new juce::GenericAudioProcessorEditor (*this);
 }
 
 //==============================================================================
@@ -176,15 +190,67 @@ void MastersPluginVer2023AudioProcessor::getStateInformation (juce::MemoryBlock&
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
 }
 
 void MastersPluginVer2023AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+
+    if (tree.isValid()) {
+        apvts.replaceState(tree);
+        //updateFilters();
+    }
 }
 
+
+
+
+
+
+
+
+
+
 //============= CUSTOM =========================================================
+
+
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts) {
+    ChainSettings settings;
+
+    settings.macro1 = apvts.getRawParameterValue("Macro 1")->load();
+    settings.macro2 = apvts.getRawParameterValue("Macro 2")->load();
+    settings.macro3 = apvts.getRawParameterValue("Macro 3")->load();
+    settings.macro4 = apvts.getRawParameterValue("Macro 4")->load();
+    settings.macro5 = apvts.getRawParameterValue("Macro 5")->load();
+    settings.macro6 = apvts.getRawParameterValue("Macro 6")->load();
+    settings.macro7 = apvts.getRawParameterValue("Macro 7")->load();
+    settings.macro8 = apvts.getRawParameterValue("Macro 8")->load();
+
+    return settings;
+}
+
+Coefficients makeMacro(const ChainSettings& chainSettings, double sampleRate)
+{
+    return juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate,
+        100.f, 1.f, 1.f);
+}
+void updateCoefficients(Coefficients& old, const Coefficients& replacements)
+{
+    *old = *replacements;
+}
+
+void MastersPluginVer2023AudioProcessor::updateMacros(const ChainSettings& chainSettings) {
+    auto peak1Coefficients = makeMacro(chainSettings, getSampleRate());
+
+    updateCoefficients(leftChain.get<ChainPositions::Macro>().coefficients, peak1Coefficients);
+    updateCoefficients(rightChain.get<ChainPositions::Macro>().coefficients, peak1Coefficients);
+}
 
 juce::AudioProcessorValueTreeState::ParameterLayout MastersPluginVer2023AudioProcessor::createParameterLayout() {
 
