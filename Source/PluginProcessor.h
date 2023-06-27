@@ -24,6 +24,10 @@ void updateCoefficients(Coefficients& ld, const Coefficients& replacements);
 
 Coefficients makeMacro(const ChainSettings& chainSettings, double sampleRate);
 
+// CLIENT
+
+void setMyParameters(juce::AudioProcessorValueTreeState& apvts); // test
+void changeParameterValue(juce::AudioProcessorValueTreeState& apvts, std::string param_name, float new_value); //test
 
 
 //==============================================================================
